@@ -23,6 +23,7 @@ class AdminUsersController extends Controller
     {
         //
         $users = User::all();
+        //dd($users);
 
         return view('admin.users.index', compact(['users']));
     }
@@ -49,9 +50,6 @@ class AdminUsersController extends Controller
     public function store(UsersRequest $request)
     {
         //
-
-
-
 
         if (trim($request->password) == '') {
             $input = $request->except('password');
@@ -125,13 +123,16 @@ class AdminUsersController extends Controller
         $validated['password'] = bcrypt($request->password);
 
         if ($file = $request->file('photo_id')) {
+
             $name = time() . $file->getClientOriginalName();
             $file->move('images', $name);
-            $photo = Photo::update(['file' => $name]);
+            $photo = Photo::create(['file' => $name]);
             $validated['photo_id'] = $photo->id;
         }
         $validated['password'] = bcrypt($validated['password']);
         $user->update($validated);
+
+        Session::flash('updated_user', 'The User has been Updated');
 
         return redirect('/admin/users');
     }
@@ -146,6 +147,7 @@ class AdminUsersController extends Controller
     {
         //
         $user = User::findOrFail($id);
+        //unlink(public_path() . $user->photo->file);
         $user->delete();
         Session::flash('deleted_user', 'The User has been deleted');
         return redirect('/admin/users');
